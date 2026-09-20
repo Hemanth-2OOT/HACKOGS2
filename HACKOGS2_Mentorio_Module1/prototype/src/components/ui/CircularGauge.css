@@ -1,0 +1,33 @@
+.circular-gauge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.circular-gauge-bg {
+  fill: none;
+  stroke: var(--border);
+}
+
+.circular-gauge-progress {
+  fill: none;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+.circular-gauge-text {
+  position: absolute;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.gauge-high { stroke: #10b981; }
+.gauge-medium { stroke: #f59e0b; }
+.gauge-low { stroke: #f43f5e; }

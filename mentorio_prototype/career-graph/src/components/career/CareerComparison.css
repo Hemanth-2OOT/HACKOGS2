@@ -1,0 +1,49 @@
+.career-comparison-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+  max-width: 100%;
+}
+
+.comparison-table-wrapper {
+  min-width: 600px;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.comparison-table th,
+.comparison-table td {
+  padding: 16px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.comparison-table th {
+  font-weight: 600;
+  color: var(--text-main);
+  background: var(--bg);
+}
+
+.comparison-table .feature-col {
+  text-align: left;
+  font-weight: 500;
+  color: var(--text-muted);
+  width: 25%;
+}
+
+.comparison-table .score-cell {
+  font-weight: bold;
+  color: var(--primary);
+  font-size: 18px;
+}
+
+.comparison-table tr:last-child td {
+  border-bottom: none;
+}
