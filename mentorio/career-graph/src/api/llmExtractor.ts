@@ -80,22 +80,25 @@ ${text.substring(0, 6000)}`;
   
   while (attempt < MAX_RETRIES) {
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.0 }
+          model: 'gpt-4o-mini',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.0,
+          response_format: { type: "json_object" }
         })
       });
 
       if (!response.ok) {
         const errText = await response.text();
         console.error(`[Extractor] API Error on attempt ${attempt + 1}:`, errText);
-        if (response.status === 503 && attempt < MAX_RETRIES - 1) {
-          console.log(`[Extractor] High demand (503). Retrying in 2 seconds...`);
+        if (response.status === 429 || (response.status >= 500 && attempt < MAX_RETRIES - 1)) {
+          console.log(`[Extractor] Rate limit or Server Error. Retrying in 2 seconds...`);
           await new Promise(r => setTimeout(r, 2000));
           attempt++;
           continue;
@@ -104,7 +107,7 @@ ${text.substring(0, 6000)}`;
       }
 
       const data = await response.json();
-      const rawJSON = data.candidates[0].content.parts[0].text;
+      const rawJSON = data.choices[0].message.content;
       console.log(`[Extractor] 3. Raw LLM JSON:\n${rawJSON}\n`);
 
       const cleanJSON = rawJSON.replace(/```json/gi, '').replace(/```/g, '').trim();
@@ -149,22 +152,25 @@ ${text.substring(0, 4000)}`;
 
   while (attempt < MAX_RETRIES) {
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.0 }
+          model: 'gpt-4o-mini',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.0,
+          response_format: { type: "json_object" }
         })
       });
 
       if (!response.ok) {
         const errText = await response.text();
         console.error(`[Extractor] API Error on attempt ${attempt + 1}:`, errText);
-        if (response.status === 503 && attempt < MAX_RETRIES - 1) {
-          console.log(`[Extractor] High demand (503). Retrying in 2 seconds...`);
+        if (response.status === 429 || (response.status >= 500 && attempt < MAX_RETRIES - 1)) {
+          console.log(`[Extractor] Rate limit or Server Error. Retrying in 2 seconds...`);
           await new Promise(r => setTimeout(r, 2000));
           attempt++;
           continue;
@@ -173,7 +179,7 @@ ${text.substring(0, 4000)}`;
       }
 
       const data = await response.json();
-      const rawContent = data.candidates[0].content.parts[0].text;
+      const rawContent = data.choices[0].message.content;
       const cleanJSON = rawContent.replace(/```json/gi, '').replace(/```/g, '').trim();
       return JSON.parse(cleanJSON);
 

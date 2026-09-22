@@ -50,7 +50,7 @@ export const UploadAnalyzer = () => {
         throw new Error('Failed to extract any text from the document.');
       }
       
-      setStatusText(apiKey === 'mock' ? 'Running AI Engine (Mock Mode)...' : 'Analyzing document with Gemini (This may take a few seconds)...');
+      setStatusText(apiKey === 'mock' ? 'Running AI Engine (Mock Mode)...' : 'Analyzing document with OpenAI (This may take a few seconds)...');
       
       if (type === 'resume') {
         const profile = await extractProfileFromResume(extractedText, apiKey);
@@ -88,7 +88,7 @@ export const UploadAnalyzer = () => {
       </p>
 
       <div style={{ margin: '2rem 0', padding: '1rem', background: 'var(--surface-hover)', borderRadius: 'var(--radius-md)' }}>
-        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Gemini API Key (Required for LLM Extraction)</label>
+        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>OpenAI API Key (Required for LLM Extraction)</label>
         <input 
           type="password" 
           placeholder="sk-..." 
