@@ -75,16 +75,18 @@ Return ONLY a valid JSON object matching this schema:
 Resume Text:
 ${text.substring(0, 6000)}`;
 
-  const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: 'gemini-1.5-flash',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.0
+      contents: [{
+        parts: [{ text: prompt }]
+      }],
+      generationConfig: {
+        temperature: 0.0
+      }
     })
   });
 
@@ -95,7 +97,7 @@ ${text.substring(0, 6000)}`;
   }
 
   const data = await response.json();
-  const rawJSON = data.choices[0].message.content;
+  const rawJSON = data.candidates[0].content.parts[0].text;
   console.log(`[Extractor] 3. Raw LLM JSON:\n${rawJSON}\n`);
 
   try {
@@ -129,16 +131,18 @@ Return ONLY a valid JSON object matching this schema:
 Job Description Text:
 ${text.substring(0, 4000)}`;
 
-  const response = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: 'gemini-1.5-flash',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.0
+      contents: [{
+        parts: [{ text: prompt }]
+      }],
+      generationConfig: {
+        temperature: 0.0
+      }
     })
   });
 
@@ -150,7 +154,7 @@ ${text.substring(0, 4000)}`;
 
   const data = await response.json();
   try {
-    const rawContent = data.choices[0].message.content;
+    const rawContent = data.candidates[0].content.parts[0].text;
     const cleanJSON = rawContent.replace(/```json/gi, '').replace(/```/g, '').trim();
     return JSON.parse(cleanJSON);
   } catch (e) {
