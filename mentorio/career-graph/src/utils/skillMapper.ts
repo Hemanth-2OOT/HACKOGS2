@@ -61,8 +61,8 @@ export function mapSkillsToIds(extractedSkills: ExtractedSkillPayload[]): Mapped
     
     return {
       ...skill,
-      matchedId: match ? match.id : null,
-      matchedLabel: match ? match.label : null
+      matchedId: match ? match.id : `custom_${normalizedTarget}`,
+      matchedLabel: match ? match.label : skill.name
     };
   });
 

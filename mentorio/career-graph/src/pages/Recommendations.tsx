@@ -11,7 +11,7 @@ import './Recommendations.css';
 
 export const Recommendations = () => {
   const navigate = useNavigate();
-  const { selectedSkills, selectedInterests, selectedPreferences, academicProfile, naturalLanguageInput, explorationMode, engineWeights, setEngineWeights } = useApp();
+  const { selectedSkills, selectedInterests, selectedPreferences, academicProfile, naturalLanguageInput, explorationMode, engineWeights, setEngineWeights, extractedProfile } = useApp();
   const [data, setData] = useState<RecommendResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [showComparison, setShowComparison] = useState(false);
@@ -19,7 +19,7 @@ export const Recommendations = () => {
 
   useEffect(() => {
     // We handle empty state visually in the render instead of redirecting
-    if (selectedSkills.length === 0 && selectedInterests.length === 0) {
+    if (selectedSkills.length === 0 && selectedInterests.length === 0 && !extractedProfile) {
       setLoading(false);
       return;
     }
@@ -31,9 +31,9 @@ export const Recommendations = () => {
       setLoading(false);
     };
     load();
-  }, [selectedSkills, selectedInterests, selectedPreferences, academicProfile, naturalLanguageInput, explorationMode, engineWeights, navigate]);
+  }, [selectedSkills, selectedInterests, selectedPreferences, academicProfile, naturalLanguageInput, explorationMode, engineWeights, navigate, extractedProfile]);
 
-  if (selectedSkills.length === 0 && selectedInterests.length === 0) {
+  if (selectedSkills.length === 0 && selectedInterests.length === 0 && !extractedProfile) {
     return (
       <div className="recommendations-dashboard container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center' }}>
         <span className="material-symbols-outlined mb-md" style={{ fontSize: '48px', color: 'var(--text-muted)' }}>account_circle</span>
