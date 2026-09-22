@@ -75,42 +75,55 @@ Return ONLY a valid JSON object matching this schema:
 Resume Text:
 ${text.substring(0, 6000)}`;
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      contents: [{
-        parts: [{ text: prompt }]
-      }],
-      generationConfig: {
-        temperature: 0.0
+  const MAX_RETRIES = 3;
+  let attempt = 0;
+  
+  while (attempt < MAX_RETRIES) {
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.0 }
+        })
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error(`[Extractor] API Error on attempt ${attempt + 1}:`, errText);
+        if (response.status === 503 && attempt < MAX_RETRIES - 1) {
+          console.log(`[Extractor] High demand (503). Retrying in 2 seconds...`);
+          await new Promise(r => setTimeout(r, 2000));
+          attempt++;
+          continue;
+        }
+        throw new Error('Failed to extract profile. Check API Key or try again later.');
       }
-    })
-  });
 
-  if (!response.ok) {
-    const errText = await response.text();
-    console.error('[Extractor] API Error:', errText);
-    throw new Error('Failed to extract profile. Check API Key.');
+      const data = await response.json();
+      const rawJSON = data.candidates[0].content.parts[0].text;
+      console.log(`[Extractor] 3. Raw LLM JSON:\n${rawJSON}\n`);
+
+      const cleanJSON = rawJSON.replace(/```json/gi, '').replace(/```/g, '').trim();
+      const parsed = JSON.parse(cleanJSON);
+      console.log(`[Extractor] 4. Parsed ${parsed.skills?.length || 0} skills.`);
+      console.log(`[Extractor] 5. Evidence for every skill:`);
+      parsed.skills.forEach((s: any) => console.log(`  -> [${s.category.toUpperCase()}] [${s.status.toUpperCase()}] ${s.name} (Evidence: ${s.evidence})`));
+      return parsed;
+      
+    } catch (e: any) {
+      if (attempt >= MAX_RETRIES - 1) {
+        console.error("[Extractor] Failed to parse LLM JSON after retries", e);
+        return MOCK_EXTRACTED_PROFILE;
+      }
+      attempt++;
+      await new Promise(r => setTimeout(r, 2000));
+    }
   }
-
-  const data = await response.json();
-  const rawJSON = data.candidates[0].content.parts[0].text;
-  console.log(`[Extractor] 3. Raw LLM JSON:\n${rawJSON}\n`);
-
-  try {
-    const cleanJSON = rawJSON.replace(/```json/gi, '').replace(/```/g, '').trim();
-    const parsed = JSON.parse(cleanJSON);
-    console.log(`[Extractor] 4. Parsed ${parsed.skills?.length || 0} skills.`);
-    console.log(`[Extractor] 5. Evidence for every skill:`);
-    parsed.skills.forEach((s: any) => console.log(`  -> [${s.category.toUpperCase()}] [${s.status.toUpperCase()}] ${s.name} (Evidence: ${s.evidence})`));
-    return parsed;
-  } catch (e) {
-    console.error("[Extractor] Failed to parse LLM JSON", e);
-    return MOCK_EXTRACTED_PROFILE;
-  }
+  return MOCK_EXTRACTED_PROFILE;
 }
 
 export async function extractRequirementsFromJD(text: string, apiKey: string, existingSkills: string[]) {
@@ -131,34 +144,47 @@ Return ONLY a valid JSON object matching this schema:
 Job Description Text:
 ${text.substring(0, 4000)}`;
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      contents: [{
-        parts: [{ text: prompt }]
-      }],
-      generationConfig: {
-        temperature: 0.0
+  const MAX_RETRIES = 3;
+  let attempt = 0;
+
+  while (attempt < MAX_RETRIES) {
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.0 }
+        })
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error(`[Extractor] API Error on attempt ${attempt + 1}:`, errText);
+        if (response.status === 503 && attempt < MAX_RETRIES - 1) {
+          console.log(`[Extractor] High demand (503). Retrying in 2 seconds...`);
+          await new Promise(r => setTimeout(r, 2000));
+          attempt++;
+          continue;
+        }
+        throw new Error('Failed to extract JD. Check API Key or try again later.');
       }
-    })
-  });
 
-  if (!response.ok) {
-    const errText = await response.text();
-    console.error('[Extractor] API Error:', errText);
-    throw new Error('Failed to extract JD. Check API Key.');
-  }
+      const data = await response.json();
+      const rawContent = data.candidates[0].content.parts[0].text;
+      const cleanJSON = rawContent.replace(/```json/gi, '').replace(/```/g, '').trim();
+      return JSON.parse(cleanJSON);
 
-  const data = await response.json();
-  try {
-    const rawContent = data.candidates[0].content.parts[0].text;
-    const cleanJSON = rawContent.replace(/```json/gi, '').replace(/```/g, '').trim();
-    return JSON.parse(cleanJSON);
-  } catch (e) {
-    console.error("Failed to parse LLM JSON", e);
-    return MOCK_EXTRACTED_JD; 
+    } catch (e: any) {
+      if (attempt >= MAX_RETRIES - 1) {
+        console.error("[Extractor] Failed to parse LLM JSON after retries", e);
+        return MOCK_EXTRACTED_JD; 
+      }
+      attempt++;
+      await new Promise(r => setTimeout(r, 2000));
+    }
   }
+  return MOCK_EXTRACTED_JD;
 }
