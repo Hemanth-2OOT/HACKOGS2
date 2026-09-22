@@ -48,15 +48,16 @@ export async function extractProfileFromResume(text: string, apiKey: string): Pr
     return new Promise(resolve => setTimeout(() => resolve(MOCK_EXTRACTED_PROFILE), 1000));
   }
 
-  const prompt = `You are a strict data extraction AI. Extract EVERY explicitly mentioned skill from this resume.
-A skill is NOT limited to predefined lists. 
+  const prompt = `You are an expert career intelligence AI. Extract technical skills, soft skills, and interests deeply from this resume.
+Do NOT just rely on the "Skills" section. You MUST read "Projects" and "Experience" deeply.
 
-RULES for Skills:
-1. Extract ALL programming languages (C, C++, Java, Python, JavaScript, SQL, etc.), frameworks (React, Angular), libraries, tools, databases, cloud platforms, concepts, and domain skills.
-2. ONLY mark a skill as "verified" if it is EXPLICITLY written in the text. Look in "Skills", "Projects", "Experience", and "Education" sections.
-3. If you infer a skill based on a project (e.g. guessing "Machine Learning" because they did an "AI project"), mark it as "inferred".
-4. Provide the exact short quote as "evidence".
-5. Categorize each skill into one of: programming_language, framework, library, tool, database, cloud, concept, other.
+RULES:
+1. Extract programming languages, frameworks, tools, cloud platforms, and databases.
+2. IMPORTANT: If a project mentions building something (e.g., "Built a local RAG agent"), you MUST extract implicit skills (e.g., "RAG", "LLM Applications", "Generative AI") even if not explicitly listed as a language.
+3. If they describe domains they worked in or are seeking internships in (e.g., "AI", "Web Development"), classify those as "interest" or "concept".
+4. Mark a skill as "verified" if explicitly named, or "inferred" if deduced from a project description.
+5. Provide the exact short quote as "evidence" (e.g. "Built a RAG-based coding agent").
+6. Categorize each item into: programming_language, framework, tool, database, cloud, concept, interest, or other.
 
 Return ONLY a valid JSON object matching this schema:
 {

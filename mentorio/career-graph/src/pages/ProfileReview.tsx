@@ -3,23 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { mapSkillsToIds } from '../utils/skillMapper';
 import type { MappedSkill } from '../utils/skillMapper';
-import { careers } from '../data/mockData';
 import './ProfileReview.css';
 
 export const ProfileReview = () => {
   const { extractedProfile, selectedSkills, toggleSkill } = useApp();
   const navigate = useNavigate();
   const [mapped, setMapped] = useState<MappedSkill[]>([]);
-  const [selectedTargetCareer, setSelectedTargetCareer] = useState<string>('');
 
   useEffect(() => {
     if (extractedProfile) {
       const results = mapSkillsToIds(extractedProfile.skills);
       setMapped(results);
       
-      // Auto-select ONLY verified skills that matched a graph ID
+      // Auto-select ALL mapped skills (verified and inferred) to remove manual toggle annoyance
       results.forEach(m => {
-        if (m.status === 'verified' && m.matchedId && !selectedSkills.includes(m.matchedId)) {
+        if (m.matchedId && !selectedSkills.includes(m.matchedId)) {
           toggleSkill(m.matchedId);
         }
       });
@@ -29,11 +27,6 @@ export const ProfileReview = () => {
   if (!extractedProfile) {
     return <div className="container" style={{ marginTop: '4rem' }}><h2>No Profile Found</h2></div>;
   }
-
-  const handleRunGapAnalysisForCareer = () => {
-    if (!selectedTargetCareer) return;
-    navigate(`/gap-analysis?targetCareer=${selectedTargetCareer}`);
-  };
 
   const categories = Array.from(new Set(mapped.map(m => m.category))).sort();
 
@@ -104,25 +97,7 @@ export const ProfileReview = () => {
                             <span style={{ fontWeight: 'bold', fontSize: '15px' }}>{m.matchedLabel || m.name}</span>
                           </div>
                           
-                          {isMapped && (
-                            <button 
-                              onClick={() => m.matchedId && toggleSkill(m.matchedId)}
-                              style={{
-                                background: 'transparent',
-                                border: 'none',
-                                color: textColor,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                padding: '4px',
-                                borderRadius: '50%',
-                              }}
-                            >
-                              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
-                                {isActive ? 'toggle_on' : 'toggle_off'}
-                              </span>
-                            </button>
-                          )}
+                          {/* Toggle removed per user request - skills are auto-selected now */}
                         </div>
                         
                         <div style={{ fontSize: '11px', opacity: isActive ? 0.9 : 0.7, fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -150,40 +125,31 @@ export const ProfileReview = () => {
         })}
       </div>
 
-      <h2>Next Step: Choose Your Target</h2>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
-        <div style={{ padding: '2rem', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', background: 'var(--surface)' }}>
-          <h3>Option A: Pick a Career</h3>
-          <p className="text-muted mb-md text-sm">Compare your skills against a known career in our graph.</p>
-          <select 
-            value={selectedTargetCareer}
-            onChange={(e) => setSelectedTargetCareer(e.target.value)}
-            style={{ width: '100%', padding: '0.75rem', marginBottom: '1rem', background: 'var(--surface-hover)', border: '1px solid var(--border)' }}
-          >
-            <option value="">-- Select a Career --</option>
-            {careers.map(c => (
-              <option key={c.id} value={c.id}>{c.label}</option>
-            ))}
-          </select>
-          <button 
-            disabled={!selectedTargetCareer}
-            onClick={handleRunGapAnalysisForCareer}
-            style={{ width: '100%', padding: '0.75rem', background: selectedTargetCareer ? 'var(--primary)' : 'var(--border)', color: 'white', border: 'none', borderRadius: '4px', cursor: selectedTargetCareer ? 'pointer' : 'not-allowed' }}
-          >
-            Run Gap Analysis
-          </button>
-        </div>
-
-        <div style={{ padding: '2rem', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', background: 'var(--surface)' }}>
-          <h3>Option B: Upload JD</h3>
-          <p className="text-muted mb-md text-sm">Have a specific job description? Upload it to extract its unique requirements.</p>
-          <button 
-            onClick={() => navigate('/upload?type=jd')}
-            style={{ width: '100%', padding: '0.75rem', background: 'transparent', color: 'var(--primary)', border: '1px solid var(--primary)', borderRadius: '4px', cursor: 'pointer' }}
-          >
-            Upload Job Description (PDF)
-          </button>
-        </div>
+      <div style={{ marginTop: '3rem', textAlign: 'center' }}>
+        <h2>Ready to see where these skills take you?</h2>
+        <p className="text-muted mb-lg" style={{ maxWidth: '600px', margin: '0 auto 2rem auto' }}>
+          We'll analyze your extracted profile against our career knowledge graph to uncover the best roles for you.
+        </p>
+        <button 
+          onClick={() => navigate('/recommendations')}
+          style={{ 
+            padding: '1rem 3rem', 
+            background: 'linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%)', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '100px', 
+            cursor: 'pointer',
+            fontSize: '1.1rem',
+            fontWeight: 'bold',
+            boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}
+        >
+          Generate Career Roadmap
+          <span className="material-symbols-outlined">arrow_forward</span>
+        </button>
       </div>
     </div>
   );
